@@ -172,6 +172,8 @@ class InputReaderInterface(object):
                 # Scale the thrust to percent (it's between 0 and 1)
                 thrust *= 100
 
+                slewing = False
+
                 # The default action is to just use the thrust...
                 limited_thrust = thrust
                 if limited_thrust > self.input.max_thrust:
@@ -194,6 +196,7 @@ class InputReaderInterface(object):
                             lowering = ((time() - self._last_time) *
                                         self.input.thrust_slew_rate)
                             limited_thrust = self._prev_thrust - lowering
+                            slewing = True
                 elif emergency_stop or thrust < self.thrust_stop_limit:
                     # If the thrust have been pulled down or the
                     # emergency stop has been activated then bypass
@@ -206,7 +209,7 @@ class InputReaderInterface(object):
                 self._prev_thrust = limited_thrust
 
                 # Lastly make sure we're following the "minimum" thrust setting
-                if limited_thrust < self.input.min_thrust:
+                if limited_thrust < self.input.min_thrust and not slewing:
                     self._prev_thrust = 0
                     limited_thrust = 0
 
